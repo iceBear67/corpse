@@ -74,7 +74,7 @@ public class GUIDeathHistory extends GUIBase {
                 index = deaths.size() - 1;
             }
         } else if (button.id == 2) {
-            CommonProxy.simpleNetworkWrapper.sendToServer(new MessageShowCorpseInventory(getCurrentDeath().getPlayerUUID(), getCurrentDeath().getId()));
+            CommonProxy.simpleNetworkWrapper.sendToServer(new MessageShowCorpseInventory(getCurrentDeath().getEntityUUID(), getCurrentDeath().getId()));
         }
     }
 
@@ -115,8 +115,6 @@ public class GUIDeathHistory extends GUIBase {
         String textName = new TextComponentTranslation("gui.death_history.name").getFormattedText() + ":";
         drawLeft(TextFormatting.DARK_GRAY + textName, guiTop + 40);
 
-        String name = death.getPlayerName();
-        drawRight(TextFormatting.GRAY + name, guiTop + 40);
 
         // Dimension
         String textDimension = new TextComponentTranslation("gui.death_history.dimension").getFormattedText() + ":";
@@ -134,15 +132,6 @@ public class GUIDeathHistory extends GUIBase {
         drawRight(TextFormatting.GRAY + "" + Math.round(death.getPosZ()) + " Z", guiTop + 100);
 
         // Player
-        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-
-        EntityPlayer player = new EntityOtherPlayerMP(mc.world, new GameProfile(death.getPlayerUUID(), death.getPlayerName()));
-        player.height = Float.MAX_VALUE;
-        GuiInventory.drawEntityOnScreen(guiLeft + xSize - (xSize - hSplit) / 2, guiTop + ySize / 2 + 30, 40, (guiLeft + xSize - (xSize - hSplit) / 2) - mouseX, (guiTop + ySize / 2) - mouseY, player);
-
-        if (mouseX >= guiLeft + 7 && mouseX <= guiLeft + hSplit && mouseY >= guiTop + 70 && mouseY <= guiTop + 100 + fontRenderer.FONT_HEIGHT) {
-            drawHoveringText(new TextComponentTranslation("tooltip.teleport").getFormattedText(), mouseX, mouseY);
-        }
     }
 
     @Override

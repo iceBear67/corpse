@@ -4,6 +4,7 @@ import de.maxhenkel.corpse.Death;
 import de.maxhenkel.corpse.DeathManager;
 import de.maxhenkel.corpse.entities.EntityCorpse;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
@@ -30,14 +31,15 @@ public class DeathEvents {
             return;
         }
 
-        if (!(entity instanceof EntityPlayerMP)) {
+        if (!(entity instanceof EntityLiving)) {
             return;
         }
+        EntityLiving living = (EntityLiving) entity;
 
         try {
             Collection<EntityItem> drops = event.getDrops();
 
-            EntityPlayerMP player = (EntityPlayerMP) event.getEntity();
+
 
             NonNullList<ItemStack> stacks = NonNullList.create();
 
@@ -49,10 +51,10 @@ public class DeathEvents {
 
             drops.clear();
 
-            Death death = Death.fromPlayer(player, stacks);
-            DeathManager.addDeath(player, death);
+            Death death = Death.fromEntity(living, stacks);
+            DeathManager.addDeath(living, death);
 
-            player.world.spawnEntity(EntityCorpse.createFromDeath(player, death));
+            living.world.spawnEntity(EntityCorpse.createFromDeath(living, death));
         } catch (Exception e) {
             e.printStackTrace();
         }

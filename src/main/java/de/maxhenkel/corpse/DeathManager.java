@@ -1,17 +1,21 @@
 package de.maxhenkel.corpse;
 
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.world.WorldServer;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class DeathManager {
 
-    public static void addDeath(EntityPlayerMP player, Death death) {
+    public static void addDeath(EntityLivingBase player, Death death) {
         try {
             File deathFile = getDeathFile(player, death.getId());
             deathFile.getParentFile().mkdirs();
@@ -22,7 +26,7 @@ public class DeathManager {
     }
 
     @Nullable
-    public static Death getDeath(EntityPlayerMP player, UUID id) {
+    public static Death getDeath(EntityLivingBase player, UUID id) {
         try {
             return Death.fromNBT(CompressedStreamTools.read(getDeathFile(player, id)));
         } catch (Exception e) {
@@ -75,20 +79,21 @@ public class DeathManager {
                 .collect(Collectors.toList());
     }
 
-    public static File getDeathFile(EntityPlayerMP player, UUID id) {
+    public static File getDeathFile(EntityLivingBase player, UUID id) {
         return new File(getPlayerDeathFolder(player), id.toString() + ".dat");
     }
 
-    public static File getPlayerDeathFolder(EntityPlayerMP player) {
+    public static File getPlayerDeathFolder(EntityLivingBase player) {
         return getPlayerDeathFolder(player, player.getUniqueID());
     }
 
-    public static File getPlayerDeathFolder(EntityPlayerMP context, UUID uuid) {
-        return new File(getDeathFolder(context.getServerWorld()), uuid.toString());
-    }
-
-    public static File getDeathFolder(WorldServer world) {
-        return new File(world.getSaveHandler().getWorldDirectory(), "deaths");
+    public static File getPlayerDeathFolder(EntityLivingBase context, UUID uuid) {
+        try {
+            Files.createDirectory(Paths.get(context.getEntityWorld().getProviderName()));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return new File(context.getEntityWorld().getProviderName(), uuid.toString());
     }
 
 }

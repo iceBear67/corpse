@@ -2,7 +2,6 @@ package de.maxhenkel.corpse.proxy;
 
 import de.maxhenkel.corpse.entities.EntityCorpse;
 import de.maxhenkel.corpse.entities.RenderFactoryCorpse;
-import de.maxhenkel.corpse.events.KeyEvents;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
@@ -26,7 +25,6 @@ public class ClientProxy extends CommonProxy {
 
     public void init(FMLInitializationEvent event) {
         super.init(event);
-        MinecraftForge.EVENT_BUS.register(new KeyEvents());
 
     }
 

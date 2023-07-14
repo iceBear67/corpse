@@ -7,7 +7,5 @@ import mezz.jei.api.IModRegistry;
 public class JEIPlugin implements IModPlugin {
 
     @Override
-    public void register(IModRegistry registry) {
-        registry.addAdvancedGuiHandlers(new DeathHistoryContainerHandler());
-    }
+    public void register(IModRegistry registry) {}
 }

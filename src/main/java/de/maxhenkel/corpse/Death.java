@@ -1,5 +1,8 @@
 package de.maxhenkel.corpse;
 
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -12,30 +15,24 @@ import java.util.UUID;
 public class Death {
 
     private UUID id;
-    private UUID playerUUID;
-    private String playerName;
     private NonNullList<ItemStack> items;
     private long timestamp;
-    private int experience;
     private double posX;
     private double posY;
     private double posZ;
     private int dimension;
+    private UUID entityUUID;
 
     private Death() {
 
     }
 
+    public UUID getEntityUUID() {
+        return entityUUID;
+    }
+
     public UUID getId() {
         return id;
-    }
-
-    public UUID getPlayerUUID() {
-        return playerUUID;
-    }
-
-    public String getPlayerName() {
-        return playerName;
     }
 
     public NonNullList<ItemStack> getItems() {
@@ -46,9 +43,6 @@ public class Death {
         return timestamp;
     }
 
-    public int getExperience() {
-        return experience;
-    }
 
     public double getPosX() {
         return posX;
@@ -70,32 +64,26 @@ public class Death {
         return dimension;
     }
 
-    @Override
-    public String toString() {
-        return "Death{name=" + playerName + "timestamp=" + timestamp + "}";
+    public static Death fromPlayer(EntityPlayer player, NonNullList<ItemStack> items) {
+        return fromEntity(player,items);
     }
 
-    public static Death fromPlayer(EntityPlayer player, NonNullList<ItemStack> items) {
+    public static Death fromEntity(EntityLivingBase entity, NonNullList<ItemStack> items) {
         Death death = new Death();
         death.id = UUID.randomUUID();
-        death.playerUUID = player.getUniqueID();
-        death.playerName = player.getName();
         death.items = items;
         death.timestamp = System.currentTimeMillis();
-        death.experience = player.experienceLevel;
-        death.posX = player.posX;
-        death.posY = player.posY;
-        death.posZ = player.posZ;
-        death.dimension = player.dimension;
-
+        death.posX = entity.posX;
+        death.posY = entity.posY;
+        death.posZ = entity.posZ;
+        death.dimension = entity.dimension;
+        death.entityUUID=entity.getUniqueID();
         return death;
     }
 
     public static Death fromNBT(NBTTagCompound compound) {
         Death death = new Death();
         death.id = new UUID(compound.getLong("IdMost"), compound.getLong("IdLeast"));
-        death.playerUUID = new UUID(compound.getLong("PlayerUuidMost"), compound.getLong("PlayerUuidLeast"));
-        death.playerName = compound.getString("PlayerName");
 
         death.items = NonNullList.create();
         if (compound.hasKey("Items")) {
@@ -106,7 +94,6 @@ public class Death {
         }
 
         death.timestamp = compound.getLong("Timestamp");
-        death.experience = compound.getInteger("Experience");
         death.posX = compound.getDouble("PosX");
         death.posY = compound.getDouble("PosY");
         death.posZ = compound.getDouble("PosZ");
@@ -123,9 +110,6 @@ public class Death {
         NBTTagCompound compound = new NBTTagCompound();
         compound.setLong("IdMost", id.getMostSignificantBits());
         compound.setLong("IdLeast", id.getLeastSignificantBits());
-        compound.setLong("PlayerUuidMost", playerUUID.getMostSignificantBits());
-        compound.setLong("PlayerUuidLeast", playerUUID.getLeastSignificantBits());
-        compound.setString("PlayerName", playerName);
 
         if (withItems) {
             NBTTagList itemList = new NBTTagList();
@@ -136,7 +120,6 @@ public class Death {
         }
 
         compound.setLong("Timestamp", timestamp);
-        compound.setInteger("Experience", experience);
         compound.setDouble("PosX", posX);
         compound.setDouble("PosY", posY);
         compound.setDouble("PosZ", posZ);

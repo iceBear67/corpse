@@ -2,7 +2,6 @@ package de.maxhenkel.corpse.proxy;
 
 import de.maxhenkel.corpse.Death;
 import de.maxhenkel.corpse.Main;
-import de.maxhenkel.corpse.commands.HistoryCommand;
 import de.maxhenkel.corpse.entities.EntityCorpse;
 import de.maxhenkel.corpse.events.DeathEvents;
 import de.maxhenkel.corpse.gui.GuiHandler;
@@ -64,10 +63,6 @@ public class CommonProxy {
 
     public void postinit(FMLPostInitializationEvent event) {
 
-    }
-
-    public void serverStarting(FMLServerStartingEvent event) {
-        event.registerServerCommand(new HistoryCommand());
     }
 
     public static Death getDeathToShow(EntityPlayer player) {

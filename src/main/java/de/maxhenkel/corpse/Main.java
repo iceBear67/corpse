@@ -38,10 +38,6 @@ public class Main {
         proxy.postinit(event);
     }
 
-    @Mod.EventHandler
-    public void serverStarting(FMLServerStartingEvent event) {
-        proxy.serverStarting(event);
-    }
 
 
     public static Main instance() {

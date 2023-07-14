@@ -2,6 +2,7 @@ package de.maxhenkel.corpse.entities;
 
 import de.maxhenkel.corpse.PlayerSkins;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.model.ModelEnderman;
 import net.minecraft.client.model.ModelPlayer;
 import net.minecraft.client.model.ModelSkeleton;
 import net.minecraft.client.network.NetworkPlayerInfo;
@@ -12,7 +13,15 @@ import net.minecraft.entity.Entity;
 import net.minecraft.util.ResourceLocation;
 
 import javax.annotation.Nullable;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
+import java.util.WeakHashMap;
 
 public class RenderCorpse extends Render<EntityCorpse> {
 
@@ -21,23 +30,30 @@ public class RenderCorpse extends Render<EntityCorpse> {
     private Minecraft mc;
     private ModelPlayer modelPlayer;
     private ModelPlayer modelPlayerSlim;
-    private ModelSkeleton modelSkeleton;
+    private static final MethodHandles.Lookup IMPL_LOOKUP;
+
+    static {
+        try {
+            Field f = MethodHandles.Lookup.class.getDeclaredField("IMPL_LOOKUP");
+            f.setAccessible(true);
+            IMPL_LOOKUP = (MethodHandles.Lookup) f.get(null);
+        } catch (IllegalAccessException | NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
     public RenderCorpse(RenderManager renderManager) {
         super(renderManager);
         mc = Minecraft.getMinecraft();
         modelPlayer = new ModelPlayer(0F, false);
         modelPlayerSlim = new ModelPlayer(0F, true);
-        modelSkeleton = new ModelSkeleton() {
-            @Override
-            public void setRotationAngles(float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scaleFactor, Entity entityIn) {
-
-            }
-        };
         modelPlayer.isChild = false;
         modelPlayerSlim.isChild = false;
-        modelSkeleton.isChild = false;
     }
+
+    private Map<Render, MethodHandle> handlerCache = new HashMap<>();
+    private Map<EntityCorpse, ResourceLocation> cache = new WeakHashMap<>();
 
     @Override
     public void doRender(EntityCorpse entity, double x, double y, double z, float entityYaw, float partialTicks) {
@@ -48,9 +64,33 @@ public class RenderCorpse extends Render<EntityCorpse> {
         GlStateManager.rotate(90, 1F, 0F, 0F);
         GlStateManager.translate(0D, -0.5D, -2D / 16D);
 
-        if (entity.getCorpseAge() >= 20 * 60 * 60) {
-            bindTexture(SKELETON_TEXTURE);
-            modelSkeleton.render(entity, 0F, 0F, 0F, 0F, 0F, 0.0625F);
+
+        if (entity.getCorpseAge() >= 20 * 60 * 60 || !entity.isPlayer()) {
+            //bindTexture(SKELETON_TEXTURE);
+            // get texture
+            if (cache.containsKey(entity)) {
+                bindTexture(cache.get(entity));
+            } else {
+                if (!handlerCache.containsKey(entity.getRenderer())) {
+                    for (Method declaredMethod : entity.getRenderer().getClass().getDeclaredMethods()) {
+                        if (declaredMethod.getReturnType() == ResourceLocation.class && declaredMethod.getParameterCount() <= 2) {
+                            declaredMethod.setAccessible(true);
+                            try {
+                                handlerCache.put(entity.getRenderer(), IMPL_LOOKUP.unreflect(declaredMethod));
+                            } catch (IllegalAccessException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                    }
+                }
+                try {
+                    cache.put(entity, (ResourceLocation) handlerCache.get(entity.getRenderer()).invoke(entity.getRenderer(), entity.getPreviousEntity()));
+                } catch (Throwable e) {
+                    throw new RuntimeException(e);
+                }
+                bindTexture(cache.get(entity));
+            }
+            entity.getRenderer().getMainModel().render(entity, 0F, 0F, 0F, 0F, 0F, 0.0625F);
         } else {
             bindTexture(getEntityTexture(entity));
             if (isSlim(entity.getCorpseUUID())) {

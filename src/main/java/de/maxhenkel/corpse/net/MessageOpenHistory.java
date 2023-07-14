@@ -35,11 +35,7 @@ public class MessageOpenHistory implements IMessage, IMessageHandler<MessageOpen
     @Override
     @SideOnly(Side.CLIENT)
     public IMessage onMessage(MessageOpenHistory message, MessageContext ctx) {
-        if (message.deaths.size() > 0) {
-            Minecraft.getMinecraft().displayGuiScreen(new GUIDeathHistory(message.deaths));
-        } else {
-            Minecraft.getMinecraft().player.sendStatusMessage(new TextComponentTranslation("message.no_death_history"), true);
-        }
+        Minecraft.getMinecraft().player.sendStatusMessage(new TextComponentTranslation("message.no_death_history"), true);
         return null;
     }
 
